@@ -5,7 +5,8 @@
 })();
 
 function handleClick(type) {
-  fetch('/tasks', {
+  const url = '/tasks' + (type == 3 ? '/long' : '')
+  fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
