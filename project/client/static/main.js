@@ -14,32 +14,55 @@ function handleClick(type) {
     body: JSON.stringify({ type: type }),
   })
   .then(response => response.json())
-  .then(data => getStatus(data.task_id));
+  .then(data => followTask(data.task_id));
 }
 
-function getStatus(taskID) {
-  fetch(`/tasks/${taskID}`, {
+function fetchTaskStatus(taskID) {
+  return fetch(`/tasks/${taskID}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
     },
   })
-  .then(response => response.json())
-  .then(res => {
+  .then(response => response.json());
+}
+
+function getStatus(taskID) {
+  return fetchTaskStatus(taskID)
+  .then(task => {
     const html = `
       <tr>
         <td>${taskID}</td>
-        <td>${res.task_status}</td>
-        <td>${res.task_result}</td>
+        <td>${task.task_status}</td>
+        <td>${task.task_result}</td>
       </tr>`;
     const newRow = document.getElementById('tasks').insertRow(0);
     newRow.innerHTML = html;
 
-    const taskStatus = res.task_status;
-    if (taskStatus === 'SUCCESS' || taskStatus === 'FAILURE') return false;
-    setTimeout(function() {
-      getStatus(res.task_id);
-    }, 1000);
-  })
-  .catch(err => console.log(err));
+    return task;
+  });
+}
+
+following_tasks = {};
+
+function followTask(taskID) {
+  const interval = setInterval(function() {
+    getStatus(taskID).then(task => {
+      if (task.task_status === 'SUCCESS' || task.task_status === 'FAILURE') {
+        clearInterval(interval);
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      clearInterval(interval);
+    });
+  }, 1000);
+
+  following_tasks[taskID] = interval;
+}
+
+function unfollowTask(taskID) {
+    try {
+      clearInterval(following_tasks[taskID]);
+    } catch (e) {}
 }
