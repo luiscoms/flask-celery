@@ -5,7 +5,6 @@ from flask import Flask
 
 
 def create_app(script_info=None):
-
     # instantiate the app
     app = Flask(
         __name__,
@@ -24,6 +23,8 @@ def create_app(script_info=None):
 
     # shell context for flask cli
     app.shell_context_processor({'app': app})
-    Swagger(app)
+    Swagger(app, config={
+        'specs_route': '/swagger-ui.html'
+    }, merge=True)
 
     return app
